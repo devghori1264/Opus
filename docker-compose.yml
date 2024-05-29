@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/usr/src/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  backend-node:
+    build:
+      context: ./backend/node
+    ports:
+      - '4000:4000'
+    volumes:
+      - ./backend/node:/usr/src/app
+    depends_on:
+      - db
+
+  backend-django:
+    build:
+      context: ./backend/django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend/django:/usr/src/app
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+
+  backend-flask:
+    build:
+      context: ./backend/flask
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./backend/flask:/usr/src/app
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: opus
+
+volumes:
+  postgres_data:
