@@ -1,4 +1,4 @@
-name: Automation
+name: CI/CD
 
 on:
   push:
@@ -9,23 +9,14 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: opus
+      mongo:
+        image: mongo:4.4
         ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          - 27017:27017
 
     steps:
       - name: Checkout code
@@ -41,17 +32,7 @@ jobs:
           cd frontend
           npm install
 
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-
-      - name: Install backend dependencies (Node)
+      - name: Install backend dependencies (Node.js)
         run: |
           cd backend/node
           npm install
@@ -70,10 +51,24 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Run frontend tests
         run: |
-          # Run tests for each backend and frontend
-          cd frontend && npm test
-          cd ../backend/node && npm test
-          cd ../django && source venv/bin/activate && python manage.py test
-          cd ../flask && source venv/bin/activate && python -m unittest discover
+          cd frontend
+          npm test -- --watchAll=false
+
+      - name: Run backend tests (Node.js)
+        run: |
+          cd backend/node
+          npm test
+
+      - name: Run backend tests (Django)
+        run: |
+          cd backend/django
+          source venv/bin/activate
+          python manage.py test
+
+      - name: Run backend tests (Flask)
+        run: |
+          cd backend/flask
+          source venv/bin/activate
+          python -m unittest discover
