@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const controllers_1 = require("./controllers");
+const authController_1 = require("./controllers/authController");
+const serviceController_1 = require("./controllers/serviceController");
+const databaseController_1 = require("./controllers/databaseController");
+const modelController_1 = require("./controllers/modelController");
+const router = (0, express_1.Router)();
+router.post('/signup', authController_1.signUp);
+router.post('/login', authController_1.logIn);
+router.get('/domains', controllers_1.getDomains);
+router.get('/models', controllers_1.getModels);
+router.get('/services', serviceController_1.getServices);
+router.get('/databases', databaseController_1.getDatabases);
+router.post('/train', modelController_1.trainModel);
+router.get('/test', modelController_1.testModel);
+exports.default = router;
